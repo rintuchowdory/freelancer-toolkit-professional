@@ -5,6 +5,7 @@ import { publicProcedure, router, protectedProcedure } from "./_core/trpc";
 import { z } from "zod";
 import * as db from "./db";
 import { TRPCError } from "@trpc/server";
+import { invokeLLM } from "./_core/llm";
 
 export const appRouter = router({
   system: systemRouter,
@@ -222,18 +223,71 @@ export const appRouter = router({
     chat: protectedProcedure
       .input(z.object({ question: z.string() }))
       .mutation(async ({ ctx, input }) => {
-        // This will be implemented with real LLM integration
-        // For now, return a placeholder
-        const answer = "Diese Funktion wird in Kürze mit echtem LLM-Backend integriert.";
-        
-        await db.createElsterChatEntry(ctx.user.id, {
-          question: input.question,
-          answer,
-          model: "gpt-4o",
-          tokensUsed: 0,
-        });
+        const systemPrompt = `Du bist ein erfahrener deutscher Steuerberater und Experte fuer Freiberufler und Kleinunternehmer.
 
-        return { question: input.question, answer };
+Du bist spezialisiert auf:
+- Umsatzsteuer (§14 UStG, §19 UStG Kleinunternehmerregelung)
+- Einkommensteuer fuer Freiberufler
+- Einnahmen-Ueberschuss-Rechnung (EÜR)
+- Umsatzsteuer-Voranmeldung und Jahreserklaerung
+- Betriebsausgaben und Abschreibungen
+- Sozialversicherung fuer Freiberufler
+- Geschaeftsvorfaelle und Rechnungslegung nach §14 UStG
+
+Beantworte Fragen praezise, sachlich und mit Bezug zu aktuellen deutschen Steuergesetzen.
+Verwende deutsche Fachbegriffe korrekt (z.B. Voranmeldung, Jahreserklaerung, EÜR, Kleinunternehmer).
+Warne vor Fehlern und empfehle bei komplexen Fragen die Konsultation eines Steuerberaters.
+Gib praktische Tipps und Beispiele, wenn relevant.
+Sei hilfreich und verstaendlich fuer Freiberufler ohne Steuerkenntnisse.`;
+
+        try {
+          const response = await invokeLLM({
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: input.question },
+            ],
+            max_tokens: 1500,
+            model: "gpt-4o",
+          });
+
+          const answerContent = response.choices?.[0]?.message?.content;
+          let answer = "Keine Antwort erhalten.";
+          
+          if (typeof answerContent === "string") {
+            answer = answerContent;
+          } else if (Array.isArray(answerContent)) {
+            answer = answerContent
+              .filter((c: any) => c.type === "text")
+              .map((c: any) => c.text)
+              .join("\n");
+          }
+          
+          const tokensUsed = response.usage?.total_tokens || 0;
+
+          await db.createElsterChatEntry(ctx.user.id, {
+            question: input.question,
+            answer,
+            model: "gpt-4o",
+            tokensUsed,
+          });
+
+          return { question: input.question, answer };
+        } catch (error) {
+          console.error("ELSTER LLM Error:", error);
+          const fallbackAnswer = "Entschuldigung, es gab einen Fehler bei der Verarbeitung Ihrer Frage. Bitte versuchen Sie es spaeter erneut oder kontaktieren Sie einen Steuerberater.";
+          
+          await db.createElsterChatEntry(ctx.user.id, {
+            question: input.question,
+            answer: fallbackAnswer,
+            model: "gpt-4o",
+            tokensUsed: 0,
+          });
+
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Fehler bei der LLM-Verarbeitung",
+          });
+        }
       }),
 
     history: protectedProcedure
