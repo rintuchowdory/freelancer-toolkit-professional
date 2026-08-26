@@ -7,15 +7,17 @@ import ExpenseTracker from "@/pages/ExpenseTracker";
 import SmallBusinessChecker from "@/pages/SmallBusinessChecker";
 import ElsterAssistant from "@/pages/ElsterAssistant";
 import VatReminders from "@/pages/VatReminders";
-import { Route, Switch } from "wouter";
+import { Route, Router as WouterRouter, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 
 function Router() {
+  const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
   // make sure to consider if you need authentication for certain routes
   return (
-    <Switch>
+    <WouterRouter base={basePath}>
+      <Switch>
       <Route path="/" component={Dashboard} />
       <Route path="/invoices" component={InvoiceGenerator} />
       <Route path="/expenses" component={ExpenseTracker} />
@@ -25,7 +27,8 @@ function Router() {
       <Route path="/404" component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
-    </Switch>
+      </Switch>
+    </WouterRouter>
   );
 }
 
