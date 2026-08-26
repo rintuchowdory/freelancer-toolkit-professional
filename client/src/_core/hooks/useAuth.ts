@@ -11,8 +11,10 @@ type UseAuthOptions = {
 export function useAuth(options?: UseAuthOptions) {
   const { redirectOnUnauthenticated = false, redirectPath } = options ?? {};
   const utils = trpc.useUtils();
+  const hasBackend = Boolean(import.meta.env.VITE_API_BASE_URL);
 
   const meQuery = trpc.auth.me.useQuery(undefined, {
+    enabled: hasBackend,
     retry: false,
     refetchOnWindowFocus: false,
   });
@@ -53,7 +55,7 @@ export function useAuth(options?: UseAuthOptions) {
     );
     return {
       user: meQuery.data ?? null,
-      loading: meQuery.isLoading || logoutMutation.isPending,
+      loading: (hasBackend && meQuery.isLoading) || logoutMutation.isPending,
       error: meQuery.error ?? logoutMutation.error ?? null,
       isAuthenticated: Boolean(meQuery.data),
     };

@@ -18,3 +18,11 @@ export const getLoginUrl = () => {
 
   return url.toString();
 };
+
+export const startLogin = () => {
+  try {
+    window.location.href = getLoginUrl();
+  } catch {
+    console.warn("[Auth] Manus OAuth is not configured for this static deployment");
+  }
+};
