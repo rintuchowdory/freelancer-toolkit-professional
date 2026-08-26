@@ -5,10 +5,12 @@ import { httpBatchLink, TRPCClientError } from "@trpc/client";
 import { createRoot } from "react-dom/client";
 import superjson from "superjson";
 import App from "./App";
-import { getLoginUrl } from "./const";
+import { startLogin } from "./const";
 import "./index.css";
 
 const queryClient = new QueryClient();
+const configuredApiOrigin = String(import.meta.env.VITE_API_BASE_URL || "").trim().replace(/\/$/, "");
+const trpcUrl = configuredApiOrigin ? `${configuredApiOrigin}/api/trpc` : "/api/trpc";
 
 const redirectToLoginIfUnauthorized = (error: unknown) => {
   if (!(error instanceof TRPCClientError)) return;
@@ -18,7 +20,7 @@ const redirectToLoginIfUnauthorized = (error: unknown) => {
 
   if (!isUnauthorized) return;
 
-  window.location.href = getLoginUrl();
+  startLogin();
 };
 
 queryClient.getQueryCache().subscribe(event => {
@@ -40,7 +42,7 @@ queryClient.getMutationCache().subscribe(event => {
 const trpcClient = trpc.createClient({
   links: [
     httpBatchLink({
-      url: "/api/trpc",
+      url: trpcUrl,
       transformer: superjson,
       headers() {
         // Preview auto-login fallback: when the browser blocks iframe cookies
