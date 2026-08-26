@@ -17,7 +17,7 @@ export default function Dashboard() {
   const { data: stats, isLoading: statsLoading } = trpc.dashboard.getStats.useQuery();
   const { data: upcomingReminders, isLoading: remindersLoading } = trpc.vatReminders.upcoming.useQuery({ daysAhead: 90 });
 
-  if (!user) return null;
+  if (!user) return <DashboardLayout><div /></DashboardLayout>;
 
   const formatEuro = (amount: number | null | undefined) => {
     if (!amount) return "€0,00";
