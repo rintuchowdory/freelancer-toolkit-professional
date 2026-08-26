@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">Freelancer Toolkit</title><desc id="desc">Production web app</desc>
+  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#1e293b"/><stop offset="1" stop-color="#3b82f6"/></linearGradient></defs>
+  <rect width="256" height="256" rx="36" fill="url(#g)"/>
+  <circle cx="200" cy="56" r="41" fill="#ffffff" opacity=".14"/>
+  <path d="M0 200 C 46 141, 97 246, 148 184 S 220 138, 256 195 L 256 256 L0 256 Z" fill="#ffffff" opacity=".12"/>
+  <text x="72" y="136" font-family="Arial, sans-serif" font-size="64" font-weight="700" fill="#ffffff">Freelancer Toolkit</text>
+  <text x="76" y="159" font-family="Arial, sans-serif" font-size="26" fill="#ffffff" opacity=".85">Production web app</text>
+</svg>
