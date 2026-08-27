@@ -24,6 +24,7 @@ interface LineItem {
 
 export default function InvoiceGenerator() {
   const { user } = useAuth();
+  const hasBackend = Boolean(import.meta.env.VITE_API_BASE_URL);
   const [isKleinunternehmer, setIsKleinunternehmer] = useState(false);
   const [clientName, setClientName] = useState("");
   const [clientEmail, setClientEmail] = useState("");
@@ -82,6 +83,11 @@ export default function InvoiceGenerator() {
 
     if (lineItems.some((item) => !item.description || item.unitPrice <= 0)) {
       toast.error("Alle Leistungspositionen müssen vollständig ausgefüllt sein");
+      return;
+    }
+
+    if (!hasBackend) {
+      toast.info("Die Rechnung kann im Gastmodus als Vorschau erstellt werden. Zum Speichern bitte ein Backend verbinden.");
       return;
     }
 
