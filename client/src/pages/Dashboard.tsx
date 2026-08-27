@@ -14,10 +14,15 @@ const ACCENT_COLOR = "oklch(0.42 0.21 35)"; // Amber-Gold
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const { data: stats, isLoading: statsLoading } = trpc.dashboard.getStats.useQuery();
-  const { data: upcomingReminders, isLoading: remindersLoading } = trpc.vatReminders.upcoming.useQuery({ daysAhead: 90 });
-
-  if (!user) return <DashboardLayout><div /></DashboardLayout>;
+  const hasBackend = Boolean(import.meta.env.VITE_API_BASE_URL);
+  const { data: stats, isLoading: statsLoading } = trpc.dashboard.getStats.useQuery(undefined, {
+    enabled: hasBackend && Boolean(user),
+    retry: false,
+  });
+  const { data: upcomingReminders, isLoading: remindersLoading } = trpc.vatReminders.upcoming.useQuery({ daysAhead: 90 }, {
+    enabled: hasBackend && Boolean(user),
+    retry: false,
+  });
 
   const formatEuro = (amount: number | null | undefined) => {
     if (!amount) return "€0,00";
@@ -80,7 +85,7 @@ export default function Dashboard() {
       <div className="space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Willkommen, {user.name || "Freelancer"}!</h1>
+          <h1 className="text-3xl font-bold text-foreground">Willkommen, {user?.name || "Freelancer"}!</h1>
           <p className="text-muted-foreground mt-2">Hier ist ein Überblick über Ihre Geschäftstätigkeit.</p>
         </div>
 
@@ -101,8 +106,8 @@ export default function Dashboard() {
                     <Skeleton className="h-8 w-24" />
                   ) : (
                     <>
-                      <div className="text-2xl font-bold text-foreground">{card.value}</div>
-                      <p className="text-xs text-muted-foreground mt-1">{card.description}</p>
+                      <div className="text-2xl font-bold text-foreground">{stats ? card.value : idx === 0 ? "€23.700,00" : idx === 1 ? "€7.100,00" : idx === 2 ? "€16.600,00" : "€2.450,00"}</div>
+                      <p className="text-xs text-muted-foreground mt-1">{stats ? card.description : "Demo-Daten — mit Login werden deine Daten geladen"}</p>
                     </>
                   )}
                 </CardContent>
@@ -190,7 +195,7 @@ export default function Dashboard() {
             </div>
           </CardHeader>
           <CardContent>
-            {remindersLoading ? (
+            {remindersLoading && Boolean(user) ? (
               <div className="space-y-2">
                 {[1, 2, 3].map((i) => (
                   <Skeleton key={i} className="h-12 w-full" />

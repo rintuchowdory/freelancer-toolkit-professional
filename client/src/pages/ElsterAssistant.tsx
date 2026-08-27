@@ -24,10 +24,14 @@ const SUGGESTED_QUESTIONS = [
 
 export default function ElsterAssistant() {
   const { user } = useAuth();
+  const hasBackend = Boolean(import.meta.env.VITE_API_BASE_URL);
   const [question, setQuestion] = useState("");
   const [messages, setMessages] = useState<Array<{ role: "user" | "assistant"; content: string; timestamp: Date }>>([]);
 
-  const { data: history, isLoading: historyLoading } = trpc.elster.history.useQuery({ limit: 20 });
+  const { data: history, isLoading: historyLoading } = trpc.elster.history.useQuery({ limit: 20 }, {
+    enabled: hasBackend,
+    retry: false,
+  });
   const chatMutation = trpc.elster.chat.useMutation();
 
   const handleSendQuestion = async () => {
@@ -39,6 +43,11 @@ export default function ElsterAssistant() {
     const userMessage = { role: "user" as const, content: question, timestamp: new Date() };
     setMessages((prev) => [...prev, userMessage]);
     setQuestion("");
+
+    if (!hasBackend) {
+      toast.info("Der ELSTER-Assistent benötigt eine aktive Backend-Verbindung.");
+      return;
+    }
 
     try {
       const response = await chatMutation.mutateAsync({ question });

@@ -50,7 +50,11 @@ const VAT_DEADLINES = [
 
 export default function VatReminders() {
   const { user } = useAuth();
-  const { data: reminders, isLoading } = trpc.vatReminders.list.useQuery();
+  const hasBackend = Boolean(import.meta.env.VITE_API_BASE_URL);
+  const { data: reminders, isLoading } = trpc.vatReminders.list.useQuery(undefined, {
+    enabled: hasBackend,
+    retry: false,
+  });
 
   const calculateDaysUntil = (deadline: string): number => {
     const today = new Date();

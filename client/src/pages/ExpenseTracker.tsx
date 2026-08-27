@@ -38,7 +38,11 @@ export default function ExpenseTracker() {
   const [deductiblePercentage, setDeductiblePercentage] = useState(100);
   const [receipt, setReceipt] = useState(false);
 
-  const { data: expenses, isLoading: expensesLoading, refetch } = trpc.expenses.list.useQuery();
+  const hasBackend = Boolean(import.meta.env.VITE_API_BASE_URL);
+  const { data: expenses, isLoading: expensesLoading, refetch } = trpc.expenses.list.useQuery(undefined, {
+    enabled: hasBackend,
+    retry: false,
+  });
   const createExpenseMutation = trpc.expenses.create.useMutation();
 
   const handleCreateExpense = async () => {
