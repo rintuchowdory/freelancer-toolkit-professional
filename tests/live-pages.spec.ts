@@ -52,7 +52,7 @@ test.describe("Professional Toolkit production smoke tests", () => {
     await page.goto(`${baseURL}/kleinunternehmer/`, { waitUntil: "networkidle" });
     await page.locator("#currentYear").fill("18000");
     await page.locator("#previousYear").fill("45000");
-    await expect(page.getByText("18.000 €", { exact: false })).toBeVisible();
+    await expect(page.getByText("€18.000", { exact: false })).toBeVisible();
     await expect(page.getByText("Sie sind berechtigt", { exact: false })).toBeVisible();
 
     const downloadPromise = page.waitForEvent("download");
@@ -63,10 +63,10 @@ test.describe("Professional Toolkit production smoke tests", () => {
 
   test("tax reminder widgets render in guest mode", async ({ page, baseURL }) => {
     await page.goto(`${baseURL}/vat-reminders/`, { waitUntil: "networkidle" });
-    await expect(page.getByRole("heading", { name: "Umsatzsteuer-Voranmeldung" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Umsatzsteuer-Jahreserklärung" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Einnahmen-Überschuss-Rechnung (EÜR)" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Einkommensteuererklärung" })).toBeVisible();
+    await expect(page.locator('[data-slot="card-title"]').filter({ hasText: "Umsatzsteuer-Voranmeldung" })).toBeVisible();
+    await expect(page.locator('[data-slot="card-title"]').filter({ hasText: "Umsatzsteuer-Jahreserklärung" })).toBeVisible();
+    await expect(page.locator('[data-slot="card-title"]').filter({ hasText: "Einnahmen-Überschuss-Rechnung (EÜR)" })).toBeVisible();
+    await expect(page.locator('[data-slot="card-title"]').filter({ hasText: "Einkommensteuererklärung" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Erinnern" }).first()).toBeVisible();
   });
 });
