@@ -2,7 +2,7 @@ name: Live end-to-end smoke test
 
 on:
   workflow_run:
-    workflows: ["Publish frontend to GitHub Pages"]
+    workflows: ["pages build and deployment"]
     types: [completed]
   workflow_dispatch:
   schedule:
