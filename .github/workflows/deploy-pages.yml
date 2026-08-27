@@ -26,6 +26,7 @@ jobs:
           for route in invoices expenses kleinunternehmer elster vat-reminders; do
             mkdir -p "dist/public/$route"
             cp dist/public/index.html "dist/public/$route/index.html"
+            cp dist/public/favicon.svg "dist/public/$route/favicon.svg"
           done
       - name: Publish generated frontend into the configured Pages root
         run: |
