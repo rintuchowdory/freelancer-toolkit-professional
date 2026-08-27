@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useState } from "react";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { AlertCircle, CheckCircle, TrendingUp } from "lucide-react";
+import { AlertCircle, CheckCircle, TrendingUp, Download, FileText } from "lucide-react";
 
 const THRESHOLD_CURRENT_YEAR = 22000; // €22.000
 const THRESHOLD_PREVIOUS_YEAR = 50000; // €50.000
@@ -47,6 +47,32 @@ export default function SmallBusinessChecker() {
 
   const projectedAnnualRevenue = monthlyProjection.reduce((sum, m) => sum + m.revenue, 0);
 
+  const handleCsvExport = () => {
+    const rows = [
+      ["Kleinunternehmer-Prüfer (§19 UStG)"],
+      ["Umsatz laufendes Jahr (€)", currentRevenue.toLocaleString("de-DE")],
+      ["Grenzwert laufendes Jahr (€)", THRESHOLD_CURRENT_YEAR.toLocaleString("de-DE")],
+      ["Umsatz Vorjahr (€)", previousRevenue.toLocaleString("de-DE")],
+      ["Grenzwert Vorjahr (€)", THRESHOLD_PREVIOUS_YEAR.toLocaleString("de-DE")],
+      ["Berechtigt", isEligible ? "Ja" : "Nein"],
+      ["Projizierter Jahresumsatz (€)", projectedAnnualRevenue.toLocaleString("de-DE")],
+    ];
+    const csv = rows
+      .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(";"))
+      .join("\\r\\n");
+    const blob = new Blob(["\\ufeff" + csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "kleinunternehmer-pruefung.csv";
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handlePdfExport = () => {
+    window.print();
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -55,6 +81,16 @@ export default function SmallBusinessChecker() {
           <p className="text-muted-foreground mt-2">
             Überprüfen Sie Ihre Berechtigung zur Kleinunternehmerregelung
           </p>
+          <div className="flex flex-wrap gap-2 mt-4 print:hidden" aria-label="Datenexport">
+            <Button type="button" variant="outline" onClick={handleCsvExport}>
+              <Download className="w-4 h-4 mr-2" />
+              CSV exportieren
+            </Button>
+            <Button type="button" variant="outline" onClick={handlePdfExport}>
+              <FileText className="w-4 h-4 mr-2" />
+              PDF drucken / speichern
+            </Button>
+          </div>
         </div>
 
         {/* Eligibility Status */}
