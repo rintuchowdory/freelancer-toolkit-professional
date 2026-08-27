@@ -52,7 +52,7 @@ test.describe("Professional Toolkit production smoke tests", () => {
     await page.goto(`${baseURL}/kleinunternehmer/`, { waitUntil: "networkidle" });
     await page.locator("#currentYear").fill("18000");
     await page.locator("#previousYear").fill("45000");
-    await expect(page.getByText("€18.000", { exact: false })).toBeVisible();
+    await expect(page.getByText("€18.000", { exact: true })).toBeVisible();
     await expect(page.getByText("Sie sind berechtigt", { exact: false })).toBeVisible();
 
     const downloadPromise = page.waitForEvent("download");
