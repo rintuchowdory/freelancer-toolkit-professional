@@ -7,7 +7,9 @@ export const getLoginUrl = () => {
   if (!oauthPortalUrl || !appId) {
     throw new Error("Manus OAuth is not configured for this deployment");
   }
-  const redirectUri = `${window.location.origin}/api/oauth/callback`;
+  const configuredApiOrigin = String(import.meta.env.VITE_API_BASE_URL || "").trim().replace(/\/$/, "");
+  const callbackOrigin = configuredApiOrigin || window.location.origin;
+  const redirectUri = `${callbackOrigin}/api/oauth/callback`;
   const state = btoa(redirectUri);
 
   const url = new URL(`${oauthPortalUrl}/app-auth`);
