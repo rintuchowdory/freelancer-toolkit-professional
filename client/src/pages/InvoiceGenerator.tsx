@@ -122,8 +122,8 @@ export default function InvoiceGenerator() {
   const handleCreateInvoice = async () => {
     if (!validateInvoice()) return;
 
-    if (!hasBackend) {
-      toast.info("Die Rechnung kann im Gastmodus als Vorschau erstellt werden. Zum Speichern bitte ein Backend verbinden.");
+    if (!user) {
+      toast.info("Die Rechnung kann im Gastmodus als Vorschau erstellt werden. Zum dauerhaften Speichern bitte anmelden.");
       return;
     }
 

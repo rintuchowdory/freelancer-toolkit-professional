@@ -12,9 +12,10 @@ export function useAuth(options?: UseAuthOptions) {
   const { redirectOnUnauthenticated = false, redirectPath } = options ?? {};
   const utils = trpc.useUtils();
   const hasBackend = Boolean(import.meta.env.VITE_API_BASE_URL);
+  const authRequired = import.meta.env.VITE_REQUIRE_AUTH === "true";
 
   const meQuery = trpc.auth.me.useQuery(undefined, {
-    enabled: hasBackend,
+    enabled: hasBackend && authRequired,
     retry: false,
     refetchOnWindowFocus: false,
   });
@@ -55,7 +56,7 @@ export function useAuth(options?: UseAuthOptions) {
     );
     return {
       user: meQuery.data ?? null,
-      loading: (hasBackend && meQuery.isLoading) || logoutMutation.isPending,
+      loading: (hasBackend && authRequired && meQuery.isLoading) || logoutMutation.isPending,
       error: meQuery.error ?? logoutMutation.error ?? null,
       isAuthenticated: Boolean(meQuery.data),
     };
@@ -69,7 +70,7 @@ export function useAuth(options?: UseAuthOptions) {
 
   useEffect(() => {
     if (!redirectOnUnauthenticated) return;
-    if (meQuery.isLoading || logoutMutation.isPending) return;
+    if (!authRequired || meQuery.isLoading || logoutMutation.isPending) return;
     if (state.user) return;
     if (typeof window === "undefined") return;
     let target = redirectPath;
@@ -86,6 +87,7 @@ export function useAuth(options?: UseAuthOptions) {
   }, [
     redirectOnUnauthenticated,
     redirectPath,
+    authRequired,
     logoutMutation.isPending,
     meQuery.isLoading,
     state.user,

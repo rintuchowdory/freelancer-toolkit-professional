@@ -51,7 +51,8 @@ export default function DashboardLayout({
     return saved ? parseInt(saved, 10) : DEFAULT_WIDTH;
   });
   const { loading, user, logout } = useAuth();
-  const guestMode = !import.meta.env.VITE_API_BASE_URL;
+  const authRequired = import.meta.env.VITE_REQUIRE_AUTH === "true";
+  const guestMode = !authRequired || !user;
 
   useEffect(() => {
     localStorage.setItem(SIDEBAR_WIDTH_KEY, sidebarWidth.toString());

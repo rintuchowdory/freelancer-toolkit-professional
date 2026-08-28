@@ -25,11 +25,12 @@ const SUGGESTED_QUESTIONS = [
 export default function ElsterAssistant() {
   const { user } = useAuth();
   const hasBackend = Boolean(import.meta.env.VITE_API_BASE_URL);
+  const canUseBackend = hasBackend && Boolean(user);
   const [question, setQuestion] = useState("");
   const [messages, setMessages] = useState<Array<{ role: "user" | "assistant"; content: string; timestamp: Date }>>([]);
 
   const { data: history, isLoading: historyLoading } = trpc.elster.history.useQuery({ limit: 20 }, {
-    enabled: hasBackend,
+    enabled: canUseBackend,
     retry: false,
   });
   const chatMutation = trpc.elster.chat.useMutation();
@@ -44,8 +45,8 @@ export default function ElsterAssistant() {
     setMessages((prev) => [...prev, userMessage]);
     setQuestion("");
 
-    if (!hasBackend) {
-      toast.info("Der ELSTER-Assistent benötigt eine aktive Backend-Verbindung.");
+    if (!user) {
+      toast.info("Der ELSTER-Assistent benötigt eine Anmeldung und Backend-Verbindung für KI-Antworten.");
       return;
     }
 

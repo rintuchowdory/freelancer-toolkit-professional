@@ -53,8 +53,9 @@ const VAT_DEADLINES = [
 export default function VatReminders() {
   const { user } = useAuth();
   const hasBackend = Boolean(import.meta.env.VITE_API_BASE_URL);
+  const canUseBackend = hasBackend && Boolean(user);
   const { data: reminders, isLoading } = trpc.vatReminders.list.useQuery(undefined, {
-    enabled: hasBackend,
+    enabled: canUseBackend,
     retry: false,
   });
   const [enabledReminders, setEnabledReminders] = useState<Record<string, boolean>>({});
@@ -62,7 +63,7 @@ export default function VatReminders() {
 
   const handleReminder = (deadlineName: string, deadlineId: string) => {
     setEnabledReminders((current) => ({ ...current, [deadlineId]: true }));
-    toast.success(hasBackend ? `Erinnerung für ${deadlineName} aktiviert.` : `Lokale Erinnerung für ${deadlineName} aktiviert. Für geräteübergreifende Benachrichtigungen bitte Backend verbinden.`);
+    toast.success(user ? `Erinnerung für ${deadlineName} aktiviert.` : `Lokale Erinnerung für ${deadlineName} aktiviert. Für geräteübergreifende Benachrichtigungen bitte anmelden.`);
   };
 
   const handleSaveNotificationSettings = () => {

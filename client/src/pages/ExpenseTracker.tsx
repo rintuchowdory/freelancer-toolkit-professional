@@ -39,8 +39,9 @@ export default function ExpenseTracker() {
   const [receipt, setReceipt] = useState(false);
 
   const hasBackend = Boolean(import.meta.env.VITE_API_BASE_URL);
+  const canUseBackend = hasBackend && Boolean(user);
   const { data: expenses, isLoading: expensesLoading, refetch } = trpc.expenses.list.useQuery(undefined, {
-    enabled: hasBackend,
+    enabled: canUseBackend,
     retry: false,
   });
   const createExpenseMutation = trpc.expenses.create.useMutation();
@@ -51,8 +52,8 @@ export default function ExpenseTracker() {
       return;
     }
 
-    if (!hasBackend) {
-      toast.info("Ausgaben können im Gastmodus angesehen werden. Zum Speichern bitte ein Backend verbinden.");
+    if (!user) {
+      toast.info("Ausgaben können im Gastmodus angesehen werden. Zum dauerhaften Speichern bitte anmelden.");
       return;
     }
 
