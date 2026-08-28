@@ -8,6 +8,8 @@ import { trpc } from "@/lib/trpc";
 import { Calendar, Bell, CheckCircle, AlertCircle } from "lucide-react";
 import { format, addMonths } from "date-fns";
 import { de } from "date-fns/locale";
+import { useState } from "react";
+import { toast } from "sonner";
 
 const VAT_DEADLINES = [
   {
@@ -55,6 +57,18 @@ export default function VatReminders() {
     enabled: hasBackend,
     retry: false,
   });
+  const [enabledReminders, setEnabledReminders] = useState<Record<string, boolean>>({});
+  const [notificationOptions, setNotificationOptions] = useState({ seven: true, fourteen: true, thirty: true });
+
+  const handleReminder = (deadlineName: string, deadlineId: string) => {
+    setEnabledReminders((current) => ({ ...current, [deadlineId]: true }));
+    toast.success(hasBackend ? `Erinnerung für ${deadlineName} aktiviert.` : `Lokale Erinnerung für ${deadlineName} aktiviert. Für geräteübergreifende Benachrichtigungen bitte Backend verbinden.`);
+  };
+
+  const handleSaveNotificationSettings = () => {
+    localStorage.setItem("freelancer-toolkit-notification-settings", JSON.stringify(notificationOptions));
+    toast.success("Benachrichtigungseinstellungen lokal gespeichert.");
+  };
 
   const calculateDaysUntil = (deadline: string): number => {
     const today = new Date();
@@ -137,9 +151,9 @@ export default function VatReminders() {
 
                   <div className="flex items-center justify-between">
                     {getStatusBadge(daysUntil)}
-                    <Button variant="ghost" size="sm" className={`${deadline.textColor} hover:bg-white/20 dark:hover:bg-black/20`}>
+                    <Button variant="ghost" size="sm" onClick={() => handleReminder(deadline.name, deadline.id)} className={`${deadline.textColor} hover:bg-white/20 dark:hover:bg-black/20`}>
                       <Bell className="w-4 h-4 mr-1" />
-                      Erinnern
+                      {enabledReminders[deadline.id] ? "Aktiviert" : "Erinnern"}
                     </Button>
                   </div>
                 </CardContent>
@@ -195,12 +209,17 @@ export default function VatReminders() {
                 { label: "30 Tage vor Frist", value: "30days" },
               ].map((option) => (
                 <label key={option.value} className="flex items-center gap-3 cursor-pointer">
-                  <input type="checkbox" defaultChecked className="rounded" />
+                  <input
+                    type="checkbox"
+                    checked={option.value === "7days" ? notificationOptions.seven : option.value === "14days" ? notificationOptions.fourteen : notificationOptions.thirty}
+                    onChange={(event) => setNotificationOptions((current) => ({ ...current, [option.value === "7days" ? "seven" : option.value === "14days" ? "fourteen" : "thirty"]: event.target.checked }))}
+                    className="rounded"
+                  />
                   <span className="text-sm text-foreground">{option.label}</span>
                 </label>
               ))}
             </div>
-            <Button className="w-full bg-accent hover:bg-accent/90 text-white">
+            <Button onClick={handleSaveNotificationSettings} className="w-full bg-accent hover:bg-accent/90 text-white">
               Einstellungen speichern
             </Button>
           </CardContent>
