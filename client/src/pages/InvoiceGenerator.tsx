@@ -35,6 +35,50 @@ export default function InvoiceGenerator() {
 
   const createInvoiceMutation = trpc.invoices.create.useMutation();
 
+  const validateInvoice = () => {
+    if (!clientName) {
+      toast.error("Kundennamen erforderlich");
+      return false;
+    }
+    if (lineItems.some((item) => !item.description || item.unitPrice <= 0)) {
+      toast.error("Alle Leistungspositionen müssen vollständig ausgefüllt sein");
+      return false;
+    }
+    return true;
+  };
+
+  const invoiceMarkup = () => {
+    const invoiceNumber = `RE-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000)}`;
+    const rows = lineItems.map((item) => `<tr><td>${item.description}</td><td>${item.quantity} ${item.unit}</td><td>€${item.unitPrice.toFixed(2)}</td><td>€${(item.quantity * item.unitPrice).toFixed(2)}</td></tr>`).join("");
+    return `<!doctype html><html lang="de"><head><meta charset="utf-8"><title>Rechnung ${invoiceNumber}</title><style>body{font-family:Arial,sans-serif;margin:40px;color:#222}h1{color:#8b3a12}table{width:100%;border-collapse:collapse;margin-top:24px}th,td{padding:10px;border-bottom:1px solid #ddd;text-align:left}.total{text-align:right;font-size:18px;margin-top:24px}</style></head><body><h1>Rechnung</h1><p><strong>Rechnungsnummer:</strong> ${invoiceNumber}<br><strong>Datum:</strong> ${new Date().toLocaleDateString("de-DE")}</p><h2>Rechnung an</h2><p>${clientName}${clientEmail ? `<br>${clientEmail}` : ""}${clientTaxId ? `<br>${clientTaxId}` : ""}</p><table><thead><tr><th>Beschreibung</th><th>Menge</th><th>Einzelpreis</th><th>Gesamt</th></tr></thead><tbody>${rows}</tbody></table><p class="total"><strong>Netto: €${subtotal.toFixed(2)}<br>${isKleinunternehmer ? "" : `USt: €${tax.toFixed(2)}<br>`}Gesamt: €${total.toFixed(2)}</strong></p>${isKleinunternehmer ? "<p>Gemäß §19 UStG wird keine Umsatzsteuer berechnet.</p>" : ""}</body></html>`;
+  };
+
+  const handlePreview = () => {
+    if (!validateInvoice()) return;
+    const preview = window.open("", "invoice-preview", "width=900,height=700");
+    if (!preview) {
+      toast.error("Vorschaufenster wurde blockiert. Bitte Pop-ups erlauben.");
+      return;
+    }
+    preview.document.write(invoiceMarkup());
+    preview.document.close();
+    toast.success("Vorschau geöffnet");
+  };
+
+  const handlePdfExport = () => {
+    if (!validateInvoice()) return;
+    const printWindow = window.open("", "invoice-print", "width=900,height=700");
+    if (!printWindow) {
+      toast.error("Druckfenster wurde blockiert. Bitte Pop-ups erlauben.");
+      return;
+    }
+    printWindow.document.write(invoiceMarkup());
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.setTimeout(() => printWindow.print(), 250);
+  };
+
+
   const addLineItem = () => {
     const newId = Math.random().toString(36).substr(2, 9);
     setLineItems([
@@ -76,15 +120,7 @@ export default function InvoiceGenerator() {
   const total = subtotal + tax;
 
   const handleCreateInvoice = async () => {
-    if (!clientName) {
-      toast.error("Kundennamen erforderlich");
-      return;
-    }
-
-    if (lineItems.some((item) => !item.description || item.unitPrice <= 0)) {
-      toast.error("Alle Leistungspositionen müssen vollständig ausgefüllt sein");
-      return;
-    }
+    if (!validateInvoice()) return;
 
     if (!hasBackend) {
       toast.info("Die Rechnung kann im Gastmodus als Vorschau erstellt werden. Zum Speichern bitte ein Backend verbinden.");
@@ -344,11 +380,11 @@ export default function InvoiceGenerator() {
                   <Button onClick={handleCreateInvoice} className="w-full bg-accent hover:bg-accent/90 text-white" disabled={createInvoiceMutation.isPending}>
                     {createInvoiceMutation.isPending ? "Wird erstellt..." : "Rechnung erstellen"}
                   </Button>
-                  <Button variant="outline" className="w-full gap-2">
+                  <Button variant="outline" className="w-full gap-2" onClick={handlePreview}>
                     <Eye className="w-4 h-4" />
                     Vorschau
                   </Button>
-                  <Button variant="outline" className="w-full gap-2">
+                  <Button variant="outline" className="w-full gap-2" onClick={handlePdfExport}>
                     <Download className="w-4 h-4" />
                     Als PDF exportieren
                   </Button>

@@ -8,12 +8,15 @@ import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, L
 import { Euro, TrendingUp, FileText, AlertCircle, Calendar } from "lucide-react";
 import { format, addDays } from "date-fns";
 import { de } from "date-fns/locale";
+import { useLocation } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
 
 const ACCENT_COLOR = "oklch(0.42 0.21 35)"; // Amber-Gold
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
   const hasBackend = Boolean(import.meta.env.VITE_API_BASE_URL);
   const { data: stats, isLoading: statsLoading } = trpc.dashboard.getStats.useQuery(undefined, {
     enabled: hasBackend && Boolean(user),
@@ -249,7 +252,7 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground mb-4">Erstellen Sie eine neue Rechnung für einen Kunden</p>
-              <Button className="w-full bg-accent hover:bg-accent/90 text-white">Rechnung erstellen</Button>
+              <Button onClick={() => setLocation("/invoices")} className="w-full bg-accent hover:bg-accent/90 text-white">Rechnung erstellen</Button>
             </CardContent>
           </Card>
 
@@ -259,7 +262,7 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground mb-4">Erfassen Sie eine neue Geschäftsausgabe</p>
-              <Button className="w-full bg-accent hover:bg-accent/90 text-white">Ausgabe hinzufügen</Button>
+              <Button onClick={() => setLocation("/expenses")} className="w-full bg-accent hover:bg-accent/90 text-white">Ausgabe hinzufügen</Button>
             </CardContent>
           </Card>
 
@@ -269,7 +272,7 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground mb-4">Verwalten Sie Ihre Kundenkontakte</p>
-              <Button className="w-full bg-accent hover:bg-accent/90 text-white">Kontakt erstellen</Button>
+              <Button onClick={() => toast.info("Kontaktverwaltung wird mit dem Backend verfügbar.")} className="w-full bg-accent hover:bg-accent/90 text-white">Kontakt erstellen</Button>
             </CardContent>
           </Card>
         </div>
